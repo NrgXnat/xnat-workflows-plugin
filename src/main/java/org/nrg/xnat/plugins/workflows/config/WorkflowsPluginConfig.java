@@ -1,12 +1,18 @@
 package org.nrg.xnat.plugins.workflows.config;
 
+import org.flowable.engine.ProcessEngine;
+import org.flowable.engine.ProcessEngineConfiguration;
+import org.flowable.spring.SpringProcessEngineConfiguration;
 import org.nrg.framework.annotations.XnatPlugin;
 import org.nrg.xnat.initialization.RootConfig;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
+
+import javax.sql.DataSource;
 
 @Configuration
 @XnatPlugin(value = "xnat-workflows-plugin",
@@ -37,4 +43,13 @@ public class WorkflowsPluginConfig {
     //             new PeriodicTrigger(10L, TimeUnit.SECONDS)
     //     );
     // }
+
+    @Bean
+    public ProcessEngine processEngine(final DataSource dataSource) {
+        final ProcessEngineConfiguration processEngineConfiguration = new SpringProcessEngineConfiguration()
+                .setDataSource(dataSource)
+                .setDatabaseSchemaUpdate("true");
+
+        return processEngineConfiguration.buildProcessEngine();
+    }
 }
