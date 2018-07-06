@@ -1,11 +1,19 @@
 package org.nrg.xnat.plugins.workflows.config;
 
+import org.flowable.engine.HistoryService;
+import org.flowable.engine.ManagementService;
 import org.flowable.engine.ProcessEngine;
 import org.flowable.engine.ProcessEngineConfiguration;
+import org.flowable.engine.RepositoryService;
+import org.flowable.engine.RuntimeService;
+import org.flowable.engine.TaskService;
 import org.flowable.spring.SpringProcessEngineConfiguration;
 import org.hibernate.SessionFactory;
+import org.nrg.xnat.plugins.workflows.helloWorld.Printer;
+import org.nrg.xnat.plugins.workflows.helloWorld.UserBean;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -20,7 +28,7 @@ import java.util.Properties;
 
 @Configuration
 @Import({HibernateConfig.class, ObjectMapperConfig.class})
-public class FlowableTestConfig {
+public class FlowableHelloWorldTestConfig {
 
     @Bean
     public ProcessEngine processEngine(final DataSource dataSource,
@@ -56,5 +64,42 @@ public class FlowableTestConfig {
     @Bean
     public ResourceTransactionManager transactionManager(final SessionFactory sessionFactory) {
         return new HibernateTransactionManager(sessionFactory);
+    }
+
+    // NOT SURE IF I NEED ALL OF THESE (they were in the example so I'm keeping them)
+    // https://www.flowable.org/docs/userguide/index.html#springintegration
+    @Bean
+    public RepositoryService repositoryService(final ProcessEngine processEngine) {
+        return processEngine.getRepositoryService();
+    }
+
+    @Bean
+    public RuntimeService runtimeService(final ProcessEngine processEngine) {
+        return processEngine.getRuntimeService();
+    }
+
+    @Bean
+    public TaskService taskService(final ProcessEngine processEngine) {
+        return processEngine.getTaskService();
+    }
+
+    @Bean
+    public HistoryService historyService(final ProcessEngine processEngine) {
+        return processEngine.getHistoryService();
+    }
+
+    @Bean
+    public ManagementService managementService(final ProcessEngine processEngine) {
+        return processEngine.getManagementService();
+    }
+
+    @Bean
+    public UserBean userBean(final RuntimeService runtimeService) {
+        return new UserBean(runtimeService);
+    }
+
+    @Bean
+    public Printer printer() {
+        return new Printer();
     }
 }
