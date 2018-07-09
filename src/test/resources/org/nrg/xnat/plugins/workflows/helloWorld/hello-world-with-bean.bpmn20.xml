@@ -9,7 +9,7 @@
         <startEvent id="start" />
         <sequenceFlow id="flow1" sourceRef="start" targetRef="print" />
 
-        <serviceTask id="print" flowable:expression="#{printer.printMessage()}" />
+        <serviceTask id="print" flowable:expression="${printer.printMessage()}" />
         <sequenceFlow id="flow2" sourceRef="print" targetRef="end" />
 
         <endEvent id="end" />

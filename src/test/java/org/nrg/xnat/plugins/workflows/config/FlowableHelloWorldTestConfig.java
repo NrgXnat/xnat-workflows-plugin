@@ -6,6 +6,7 @@ import org.flowable.engine.ProcessEngine;
 import org.flowable.engine.RepositoryService;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
+import org.flowable.engine.test.FlowableRule;
 import org.flowable.spring.SpringProcessEngineConfiguration;
 import org.hibernate.SessionFactory;
 import org.nrg.xnat.plugins.workflows.helloWorld.Printer;
@@ -101,5 +102,10 @@ public class FlowableHelloWorldTestConfig {
     @Bean
     public Printer printer() {
         return new Printer();
+    }
+
+    @Bean
+    public FlowableRule flowableRule(final ProcessEngine processEngine) {
+        return new FlowableRule(processEngine);
     }
 }

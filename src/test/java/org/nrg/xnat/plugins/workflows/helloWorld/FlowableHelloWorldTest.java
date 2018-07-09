@@ -7,6 +7,7 @@ import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
 import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.runtime.ProcessInstance;
+import org.flowable.engine.test.FlowableRule;
 import org.flowable.spring.SpringProcessEngineConfiguration;
 import org.flowable.task.api.Task;
 import org.junit.Before;
@@ -40,6 +41,8 @@ public class FlowableHelloWorldTest {
     @Autowired RepositoryService repositoryService;
 
     @Rule public TestName testName = new TestName();
+
+    @Autowired @Rule public FlowableRule flowableRule;
 
     @Before
     public void setup() throws Exception {
@@ -98,6 +101,42 @@ public class FlowableHelloWorldTest {
         final Object printer = beans.get("printer");
         assertThat(printer.getClass().isAssignableFrom(Printer.class), is(true));
         log.debug("Verified that process engine configuration has a Printer bean named \"printer\".");
+
+        log.info("Starting process instance from process definition.");
+        final ProcessInstance processInstance = runtimeService.startProcessInstanceById(processId);
+
+        assertThat(processInstance, not(nullValue()));
+        log.debug("Started process instance. ID: " + processInstance.getId());
+
+        verifyRunningProcessNumber(runtimeService.createProcessInstanceQuery().count(), 1);
+
+        log.info("Getting task instance for process instance.");
+        final Task task = taskService.createTaskQuery().singleResult();
+        assertThat(task, not(nullValue()));
+        log.debug("Task found. Name: {}", task.getName());
+
+        log.info("Completing task.");
+        taskService.complete(task.getId());
+
+        verifyRunningProcessNumber(runtimeService.createProcessInstanceQuery().count(), 0);
+    }
+
+    @Test
+    public void testRunProcess() throws Exception {
+        final String processXMLPath = "org/nrg/xnat/plugins/workflows/helloWorld/single-task.bpmn20.xml";
+
+        log.debug("Deploying process XML {}.", processXMLPath);
+        final String deploymentId = repositoryService.createDeployment()
+                .addClasspathResource(processXMLPath)
+                .deploy()
+                .getId();
+        log.debug("Got deployment id {}.", deploymentId);
+        assertThat(deploymentId, not(isEmptyOrNullString()));
+
+        log.debug("Getting process definition from deployment.");
+        final ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().deploymentId(deploymentId).singleResult();
+        final String processId = processDefinition.getId();
+        log.debug("Got process definition with id {}.", processId);
 
         log.info("Starting process instance from process definition.");
         final ProcessInstance processInstance = runtimeService.startProcessInstanceById(processId);
