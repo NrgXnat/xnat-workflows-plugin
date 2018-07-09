@@ -3,7 +3,6 @@ package org.nrg.xnat.plugins.workflows.config;
 import org.flowable.engine.HistoryService;
 import org.flowable.engine.ManagementService;
 import org.flowable.engine.ProcessEngine;
-import org.flowable.engine.ProcessEngineConfiguration;
 import org.flowable.engine.RepositoryService;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
@@ -12,18 +11,16 @@ import org.hibernate.SessionFactory;
 import org.nrg.xnat.plugins.workflows.helloWorld.Printer;
 import org.nrg.xnat.plugins.workflows.helloWorld.UserBean;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.orm.hibernate4.HibernateTransactionManager;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.ResourceTransactionManager;
 
 import javax.sql.DataSource;
-import javax.transaction.TransactionManager;
 import java.util.Properties;
 
 @Configuration
@@ -32,11 +29,14 @@ public class FlowableHelloWorldTestConfig {
 
     @Bean
     public ProcessEngine processEngine(final DataSource dataSource,
-                                       final PlatformTransactionManager transactionManager) {
+                                       final PlatformTransactionManager transactionManager,
+                                       final ApplicationContext ctx) {
         final SpringProcessEngineConfiguration processEngineConfiguration = new SpringProcessEngineConfiguration();
         processEngineConfiguration.setTransactionManager(transactionManager);
         processEngineConfiguration.setDataSource(dataSource);
         processEngineConfiguration.setDatabaseSchemaUpdate("true");
+
+        processEngineConfiguration.setApplicationContext(ctx);
 
         return processEngineConfiguration.buildProcessEngine();
     }
