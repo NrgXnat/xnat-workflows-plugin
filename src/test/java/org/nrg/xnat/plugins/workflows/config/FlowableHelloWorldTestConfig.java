@@ -6,11 +6,12 @@ import org.flowable.engine.ProcessEngine;
 import org.flowable.engine.RepositoryService;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
+import org.flowable.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.flowable.engine.test.FlowableRule;
+import org.flowable.spring.ProcessEngineFactoryBean;
 import org.flowable.spring.SpringProcessEngineConfiguration;
 import org.hibernate.SessionFactory;
 import org.nrg.xnat.plugins.workflows.helloWorld.Printer;
-import org.nrg.xnat.plugins.workflows.helloWorld.UserBean;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -29,17 +30,29 @@ import java.util.Properties;
 public class FlowableHelloWorldTestConfig {
 
     @Bean
-    public ProcessEngine processEngine(final DataSource dataSource,
-                                       final PlatformTransactionManager transactionManager,
-                                       final ApplicationContext ctx) {
+    public ProcessEngineConfigurationImpl processEngineConfiguration(final DataSource dataSource,
+                                                                     final PlatformTransactionManager transactionManager) {
         final SpringProcessEngineConfiguration processEngineConfiguration = new SpringProcessEngineConfiguration();
         processEngineConfiguration.setTransactionManager(transactionManager);
         processEngineConfiguration.setDataSource(dataSource);
         processEngineConfiguration.setDatabaseSchemaUpdate("true");
 
-        processEngineConfiguration.setApplicationContext(ctx);
+        return processEngineConfiguration;
+    }
 
-        return processEngineConfiguration.buildProcessEngine();
+    @Bean
+    public ProcessEngineFactoryBean processEngineFactoryBean(final ProcessEngineConfigurationImpl processEngineConfiguration,
+                                                             final ApplicationContext ctx) {
+        final ProcessEngineFactoryBean processEngineFactoryBean = new ProcessEngineFactoryBean();
+        processEngineFactoryBean.setProcessEngineConfiguration(processEngineConfiguration);
+        processEngineFactoryBean.setApplicationContext(ctx);
+
+        return processEngineFactoryBean;
+    }
+
+    @Bean
+    public ProcessEngine processEngine(final ProcessEngineFactoryBean processEngineFactoryBean) throws Exception {
+        return processEngineFactoryBean.getObject();
     }
 
     @Bean
@@ -95,17 +108,7 @@ public class FlowableHelloWorldTestConfig {
     }
 
     @Bean
-    public UserBean userBean(final RuntimeService runtimeService) {
-        return new UserBean(runtimeService);
-    }
-
-    @Bean
     public Printer printer() {
         return new Printer();
-    }
-
-    @Bean
-    public FlowableRule flowableRule(final ProcessEngine processEngine) {
-        return new FlowableRule(processEngine);
     }
 }
